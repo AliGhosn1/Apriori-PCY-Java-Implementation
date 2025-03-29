@@ -125,13 +125,20 @@ public class Apriori {
 
     }
 
-    public static double generateDynamicSupportThreshhold(Hashtable<String,Integer> database){
-        double support = 0;
-        forEach(entry in database.entrySet()){
-            support += entry.getValue();
-        }
+    public static double generateDynamicSupportThreshhold(Hashtable<String, Integer> database) {
+        List<Integer> values = new ArrayList<>(data);
 
-        return support / database.size();
+        Collections.sort(values);
+
+        int n = values.size();
+
+        if (n % 2 != 0) {
+            return values.get(n / 2);
+        } else {
+            double mid1 = values.get((n / 2) - 1);
+            double mid2 = values.get(n / 2);
+            return (mid1 + mid2) / 2.0;
+        }
     }
 
 }
