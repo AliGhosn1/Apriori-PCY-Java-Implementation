@@ -6,7 +6,8 @@ import java.util.*;
 
 public class PCY {
     public static int datasize = 88000;
-        double support;
+    double support;
+    static double weightImpact = 0.5;
 
     public static void main(String[] args) throws Exception {
 
@@ -75,20 +76,21 @@ public class PCY {
 
         support = generateDynamicSupportThreshhold(firstBucket);
 
-        firstBucket.forEach((k,v) ->{
-            if(v >= support){
-                bitSet.set(hashFunction(k));
+        for(int i = 0; i < firstBucket.size(); i++){
+            if(firstBucket[i].getValue() >= getWeightedFrequency(firstBucket[i].getValue(), i, firstBucket.size())){
+                bitSet.set(hashFunction(firstBucket[i].getKey()));
             }
-        });
+        }
 
         support = generateDynamicSupportThreshhold(database);
         //generate 1st sequences
         Hashtable<String,Integer> frequentItems = new Hashtable<>();
-        database.forEach((k,v) ->{
-            if(v >= support){
-                frequentItems.put(k,v);
+
+        for(int i = 0; i < database.size(); i++){
+            if(database[i].getValue() >= getWeightedFrequency(database[i].getValue(), i, database.size())){
+                frequentItems.put(database[i].getKey(), database[i].getValue());
             }
-        });
+        }
 
         //second pass
         //Hashtable<String,Integer> secondPass = new Hashtable<>();
@@ -131,11 +133,12 @@ public class PCY {
 
         Hashtable<String,Integer> frequentPairs = new Hashtable<>();
         support = generateDynamicSupportThreshhold(frequentBucket);
-        frequentBucket.forEach((k,v) ->{
-            if(v >= support){
-                frequentPairs.put(k,v);
+
+        for(int i = 0; i < frequentBucket.size(); i++){
+            if(frequentBucket[i].getValue() >= getWeightedFrequency(frequentBucket[i].getValue(), i, frequentBucket.size())){
+                frequentPairs.put(frequentBucket[i].getKey(), frequentBucket[i].getValue());
             }
-        });
+        }
 
         //output frequent items to file
         frequentItems.forEach((k,v)->{
@@ -168,10 +171,14 @@ public class PCY {
 
     public static double generateDynamicSupportThreshhold(Hashtable<String,Integer> database){
         double support = 0;
-        forEach(entry in database.entrySet()){
-            support += entry.getValue();
+        for(int i = 0; i < database.size(); i++){
+            support += getWeightedFrequency(database[i].getValue(), i, database.size());
         }
 
         return support / database.size();
+    }
+
+    public static double getWeightedFrequency(double entryValue, int i, int size){
+        return entryValue * (1 + (weightImpact - (weightImpact * 2 * i / dsize)));
     }
 }

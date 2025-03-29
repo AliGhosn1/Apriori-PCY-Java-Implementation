@@ -49,11 +49,12 @@ public class Apriori {
 
         //generate 1st sequences
         Hashtable<String,Integer> frequentItems = new Hashtable<>();
-        database.forEach((k,v) ->{
-            if(v >= support){
-                frequentItems.put(k,v);
+        
+        for(int i = 0; i < database.size(); i++){
+            if(database[i].getValue() >= getWeightedFrequency(database[i].getValue(), i, database.size())){
+                frequentItems.put(database[i].getKey(), database[i].getValue());
             }
-        });
+        }
 
         //second pass
         Hashtable<String,Integer> secondPass = new Hashtable<>();
@@ -93,11 +94,12 @@ public class Apriori {
         support = generateDynamicSupportThreshhold(secondPass);
 
         Hashtable<String,Integer> frequentPairs = new Hashtable<>();
-        secondPass.forEach((k,v) ->{
-            if(v >= support){
-                frequentPairs.put(k,v);
+
+        for(int i = 0; i < secondPass.size(); i++){
+            if(secondPass[i].getValue() >= getWeightedFrequency(secondPass[i].getValue(), i, secondPass.size())){
+                frequentPairs.put(secondPass[i].getKey(), secondPass[i].getValue());
             }
-        });
+        }
 
         //output frequent items to file
         frequentItems.forEach((k,v)->{
@@ -127,11 +129,15 @@ public class Apriori {
 
     public static double generateDynamicSupportThreshhold(Hashtable<String,Integer> database){
         double support = 0;
-        forEach(entry in database.entrySet()){
-            support += entry.getValue();
+        for(int i = 0; i < database.size(); i++){
+            support += getWeightedFrequency(database[i].getValue(), i, database.size());
         }
 
         return support / database.size();
+    }
+
+    public static double getWeightedFrequency(double entryValue, int i, int size){
+        return entryValue * (1 + (weightImpact - (weightImpact * 2 * i / dsize)));
     }
 
 }
