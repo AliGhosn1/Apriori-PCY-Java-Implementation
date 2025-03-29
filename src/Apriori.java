@@ -5,10 +5,8 @@ import java.util.*;
 
 
 public class Apriori {
-
-    public static double persentThreshold = 0.1;
     public static int datasize = 88000;
-    public static int support = (int)(datasize * persentThreshold);//minimum support threshold
+    public static double support;
 
     public static void main(String[] args) throws Exception {
 
@@ -46,6 +44,8 @@ public class Apriori {
                 }
             }
         }
+
+        support = generateDynamicSupportThreshhold(database);
 
         //generate 1st sequences
         Hashtable<String,Integer> frequentItems = new Hashtable<>();
@@ -90,6 +90,8 @@ public class Apriori {
             }
         }
 
+        support = generateDynamicSupportThreshhold(secondPass);
+
         Hashtable<String,Integer> frequentPairs = new Hashtable<>();
         secondPass.forEach((k,v) ->{
             if(v >= support){
@@ -118,9 +120,18 @@ public class Apriori {
         in.close();
 
         long endTime = System.currentTimeMillis();
-        System.out.println("Datasize: " + datasize + " Support threshold: " + support);
+        System.out.println("Datasize: " + datasize);
         System.out.println("Time elapsed: " + (endTime - startTime));
 
+    }
+
+    public static double generateDynamicSupportThreshhold(Hashtable<String,Integer> database){
+        double support = 0;
+        forEach(entry in database.entrySet()){
+            support += entry.getValue();
+        }
+
+        return support / database.size();
     }
 
 }

@@ -5,10 +5,8 @@ import java.util.*;
 
 
 public class PCY {
-
-    public static double persentThreshold = 0.1;
     public static int datasize = 88000;
-    public static int support = (int)(datasize * persentThreshold);//minimum support threshold
+        double support;
 
     public static void main(String[] args) throws Exception {
 
@@ -75,12 +73,15 @@ public class PCY {
 
         }
 
+        support = generateDynamicSupportThreshhold(firstBucket);
+
         firstBucket.forEach((k,v) ->{
             if(v >= support){
                 bitSet.set(hashFunction(k));
             }
         });
 
+        support = generateDynamicSupportThreshhold(database);
         //generate 1st sequences
         Hashtable<String,Integer> frequentItems = new Hashtable<>();
         database.forEach((k,v) ->{
@@ -129,6 +130,7 @@ public class PCY {
         }
 
         Hashtable<String,Integer> frequentPairs = new Hashtable<>();
+        support = generateDynamicSupportThreshhold(frequentBucket);
         frequentBucket.forEach((k,v) ->{
             if(v >= support){
                 frequentPairs.put(k,v);
@@ -156,14 +158,20 @@ public class PCY {
         in.close();
 
         long endTime = System.currentTimeMillis();
-        System.out.println("Datasize: " + datasize + " Support threshold: " + support);
+        System.out.println("Datasize: " + datasize);
         System.out.println("Time elapsed: " + (endTime - startTime));
-
     }
-
 
     public static Integer hashFunction(String key){
         return Math.abs(key.hashCode() % datasize);
+    }
 
+    public static double generateDynamicSupportThreshhold(Hashtable<String,Integer> database){
+        double support = 0;
+        forEach(entry in database.entrySet()){
+            support += entry.getValue();
+        }
+
+        return support / database.size();
     }
 }
