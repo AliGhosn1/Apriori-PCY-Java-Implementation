@@ -5,14 +5,14 @@ import java.util.*;
 
 
 public class PCY {
-    public static int datasize = 88000;
-        double support;
+    public static int datasize = 833;
+
 
     public static void main(String[] args) throws Exception {
 
         long startTime = System.currentTimeMillis();
 
-        BitSet bitSet = new BitSet(88000);
+        BitSet bitSet = new BitSet(833);
 
         Set<String> uniqueItems = new HashSet<>();
         //store unique items in the dataset
@@ -20,16 +20,18 @@ public class PCY {
         List<String> buckets;
         //a collection of all items in one line
 
-        Hashtable<String,Integer> database = new Hashtable<>();
+        Hashtable<String,Double> database = new Hashtable<>();
         //a collection of all items with their support #
 
-        Hashtable<String,Integer> firstBucket = new Hashtable<>();
+        Hashtable<String,Double> firstBucket = new Hashtable<>();
 
         //File input/output stream
         BufferedReader in = new BufferedReader(new FileReader("data/retail.txt"));
         BufferedWriter output = new BufferedWriter(new FileWriter("data/PCY_results.txt"));
 
         String currentLine; //current line scanned by BufferedReader
+        int counter = 0;
+        double support;
 
         //first pass
         while ((currentLine = in.readLine()) != null) {
@@ -44,7 +46,7 @@ public class PCY {
                 if (database.containsKey(item)) {
                     database.put(item, database.get(item) + 1);
                 } else {
-                    database.put(item, 1);
+                    database.put(item, 1.0);
                 }
             }
 
@@ -64,36 +66,40 @@ public class PCY {
                     if(firstBucket.containsKey(items)){
                         firstBucket.put(items, firstBucket.get(items) + 1);
                     }else{
-                        firstBucket.put(items,1);
+                        firstBucket.put(items, 1.0);
                     }
 
                 }
 
             }
-
+            counter++;
         }
 
         support = generateDynamicSupportThreshhold(firstBucket);
-
-        firstBucket.forEach((k,v) ->{
+        for (String k : firstBucket.keySet()) {
+            Double v = firstBucket.get(k);
             if(v >= support){
                 bitSet.set(hashFunction(k));
             }
-        });
+
+        }
+
 
         support = generateDynamicSupportThreshhold(database);
         //generate 1st sequences
-        Hashtable<String,Integer> frequentItems = new Hashtable<>();
-        database.forEach((k,v) ->{
+        Hashtable<String,Double> frequentItems = new Hashtable<>();
+   
+        for (String k : database.keySet()) {
+            Double v = database.get(k);
             if(v >= support){
-                frequentItems.put(k,v);
+                frequentItems.put(k, v);
             }
-        });
+        }
 
         //second pass
         //Hashtable<String,Integer> secondPass = new Hashtable<>();
-        LinkedHashMap<String, Integer> frequentBucket = new LinkedHashMap<>();
         in = new BufferedReader(new FileReader("data/retail.txt"));
+        Hashtable<String, Double> frequentBucket = new Hashtable<>();
 
         while ((currentLine = in.readLine()) != null) {
 
@@ -121,7 +127,7 @@ public class PCY {
                         frequentBucket.put(items,frequentBucket.get(items) + 1);
 
                     }else{
-                        frequentBucket.put(items,1);
+                        frequentBucket.put(items,1.0);
                     }
 
                 }
@@ -129,13 +135,14 @@ public class PCY {
             }
         }
 
-        Hashtable<String,Integer> frequentPairs = new Hashtable<>();
-        support = generateDynamicSupportThreshhold(frequentBucket);
-        frequentBucket.forEach((k,v) ->{
+        Hashtable<String,Double> frequentPairs = new Hashtable<>();
+
+        for (String k : frequentBucket.keySet()) {
+            Double v = frequentBucket.get(k);
             if(v >= support){
-                frequentPairs.put(k,v);
+                frequentPairs.put(k, v);
             }
-        });
+        }
 
         //output frequent items to file
         frequentItems.forEach((k,v)->{
@@ -166,10 +173,11 @@ public class PCY {
         return Math.abs(key.hashCode() % datasize);
     }
 
-    public static double generateDynamicSupportThreshhold(Hashtable<String,Integer> database){
+    public static double generateDynamicSupportThreshhold(Hashtable<String,Double> database){
         double support = 0;
-        forEach(entry in database.entrySet()){
-            support += entry.getValue();
+        for (String k : database.keySet()) {
+            Double v = database.get(k);
+            support += v;
         }
 
         return support / database.size();

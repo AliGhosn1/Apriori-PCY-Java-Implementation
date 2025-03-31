@@ -5,8 +5,7 @@ import java.util.*;
 
 
 public class Apriori {
-    public static int datasize = 88000;
-    public static double support;
+    public static int datasize = 833;
 
     public static void main(String[] args) throws Exception {
 
@@ -18,7 +17,7 @@ public class Apriori {
         List<String> buckets;
         //a collection of all items in one line
 
-        Hashtable<String,Integer> database = new Hashtable<>();
+        Hashtable<String, Double> database = new Hashtable<>();
         //a collection of all items with their support #
 
         //File input/output stream
@@ -26,7 +25,10 @@ public class Apriori {
         BufferedWriter output = new BufferedWriter(new FileWriter("data/results.txt"));
 
         String currentLine; //current line scanned by BufferedReader
+        Integer counter = 0;
+        double support;
 
+        counter = 0;
         //first pass
         while ((currentLine = in.readLine()) != null) {
             //output.write(currentLine+"\n");
@@ -40,25 +42,29 @@ public class Apriori {
                 if (database.containsKey(item)) {
                     database.put(item, database.get(item) + 1);
                 } else {
-                    database.put(item, 1);
+                    database.put(item, 1.0);
                 }
             }
+
+            counter++;
         }
 
         support = generateDynamicSupportThreshhold(database);
-
+        System.out.println("Support: " + support);
         //generate 1st sequences
-        Hashtable<String,Integer> frequentItems = new Hashtable<>();
-        database.forEach((k,v) ->{
+        Hashtable<String, Double> frequentItems = new Hashtable<>();
+        for (String k : database.keySet()) {
+            Double v = database.get(k);
             if(v >= support){
-                frequentItems.put(k,v);
+                frequentItems.put(k, v);
             }
-        });
+        }
 
         //second pass
-        Hashtable<String,Integer> secondPass = new Hashtable<>();
+        Hashtable<String,Double> secondPass = new Hashtable<>();
 
         in = new BufferedReader(new FileReader("data/retail.txt"));
+
 
         while ((currentLine = in.readLine()) != null) {
             //output.write(currentLine+"\n");
@@ -80,7 +86,7 @@ public class Apriori {
                         if(secondPass.containsKey(key)){
                             secondPass.put(key, secondPass.get(key) + 1);
                         }else{
-                            secondPass.put(key ,1);
+                            secondPass.put(key ,1.0);
                         }
 
                     }
@@ -91,13 +97,15 @@ public class Apriori {
         }
 
         support = generateDynamicSupportThreshhold(secondPass);
+        System.out.println("Support: " + support);
+        Hashtable<String,Double> frequentPairs = new Hashtable<>();
 
-        Hashtable<String,Integer> frequentPairs = new Hashtable<>();
-        secondPass.forEach((k,v) ->{
+        for (String k : secondPass.keySet()) {
+            Double v = secondPass.get(k);
             if(v >= support){
-                frequentPairs.put(k,v);
+                frequentPairs.put(k, v);
             }
-        });
+        }
 
         //output frequent items to file
         frequentItems.forEach((k,v)->{
@@ -125,13 +133,13 @@ public class Apriori {
 
     }
 
-    public static double generateDynamicSupportThreshhold(Hashtable<String,Integer> database){
+    public static double generateDynamicSupportThreshhold(Hashtable<String,Double> database){
         double support = 0;
-        forEach(entry in database.entrySet()){
-            support += entry.getValue();
+        for (String k : database.keySet()) {
+            Double v = database.get(k);
+            support += v;
         }
 
         return support / database.size();
     }
-
 }
